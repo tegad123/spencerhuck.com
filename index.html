@@ -453,6 +453,10 @@ input, textarea, select { font-family: inherit; }
   object-fit: cover;
   display: block;
 }
+.card-media video {
+  transform: scale(1.08);
+  transform-origin: center center;
+}
 .play-btn {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -1790,7 +1794,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ========== VIDEO HOVER ========== //
+  // ========== VIDEO AUTOPLAY & CLICK-TO-PLAY ========== //
+  var videoObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      var video = entry.target;
+      if (video.hasAttribute('data-click-to-play')) return;
+      if (entry.isIntersecting) {
+        video.play().catch(function() {});
+      } else {
+        video.pause();
+      }
+    });
+  }, { threshold: 0.3 });
+
   document.querySelectorAll('.prop-card').forEach(function(card) {
     var video = card.querySelector('.card-video');
     if (!video) return;
@@ -1819,13 +1835,10 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // All other videos: autoplay on hover
-    card.addEventListener('mouseenter', function() {
-      video.play().catch(function() {});
-    });
-    card.addEventListener('mouseleave', function() {
-      video.pause();
-    });
+    // All other videos: autoplay when visible, hide play button
+    var playBtn = card.querySelector('.play-btn');
+    if (playBtn) playBtn.style.display = 'none';
+    videoObserver.observe(video);
   });
 
   // ========== CONTACT FORM ========== //
